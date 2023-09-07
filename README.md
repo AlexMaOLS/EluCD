@@ -2,7 +2,7 @@
 
 This is the codebase for [Elucidating The Design Space of Classifier-Guided Diffusion Generation](http://arxiv.org/abs/2105.05233).
 
-This repository contains three main folders, contains the off-the-shelf classifier guidance for [DDPM](https://github.com/openai/guided-diffusion), [EDM](https://github.com/NVlabs/edm) and [DiT](https://github.com/facebookresearch/DiT) respectively.   
+This repository contains three main folders, targeting the off-the-shelf classifier guidance for [DDPM](https://github.com/openai/guided-diffusion), [EDM](https://github.com/NVlabs/edm) and [DiT](https://github.com/facebookresearch/DiT) respectively.   
 
 # Download pre-trained models
 
