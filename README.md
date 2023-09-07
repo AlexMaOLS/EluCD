@@ -10,29 +10,26 @@ We use the off-the-shelf [Pytorch ResNet classifier](https://pytorch.org/vision/
 
 
 
-# Sampling from pre-trained models 
+# Off-the-shelf Guidance for DDPM 
 
-To sample from these models, you can directly run `./guided_sample.sh`.
-All the model checkpoints are stored in the `pretrained_models/` folder.
+Firstly go to folder `./DDPM`, which contains all files for the off-the-shelf classifier guidance for [DDPM diffusion model](https://github.com/openai/guided-diffusion). 
+you can directly run `./guided_sample.sh`.
+All the model checkpoints are stored in the `./pretrained_models/` folder.
 
 For FID evaluation, use `./pytorch-fid-master/src/evaluation_image.sh`, and replace the filename with the sample folder name you created. 
-
-```
-SAMPLE_FLAGS="--batch_size 4 --num_samples 100 --timestep_respacing 250"
-```
 
 ## Off-the-shelf Classifier guidance
 
 Note for these sampling runs that you can set `--classifier_scale 0` to sample from the base diffusion model.
 You may also use the `image_sample.py` script instead of `classifier_sample.py` in that case.
 
- * off-the-shelf ResNet 50 DDPM guided:
+ * off-the-shelf ResNet50 DDPM guided:
 
 ```
 CLASSIFIER_FLAGS="--image_size 128 --classifier_attention_resolutions 32,16,8 --classifier_depth 2 --classifier_width 128 --classifier_pool attention --classifier_resblock_updown True --classifier_use_scale_shift_norm True --classifier_scale 1.0 --softplus_beta 3.0 --joint_temperature 1.0 --margin_temperature_discount 0.5 --good_class_factor 1.5 --classifier_use_fp16 True"
 ```
 
- * off-the-shelf ResNet 101 DDPM guided:
+ * off-the-shelf ResNet101 DDPM guided:
 
 ```
 CLASSIFIER_FLAGS="--image_size 128 --classifier_attention_resolutions 32,16,8 --classifier_depth 2 --classifier_width 128 --classifier_pool attention --classifier_resblock_updown True --classifier_use_scale_shift_norm True --classifier_scale 1.0 --softplus_beta 3.0 --joint_temperature 1.0 --margin_temperature_discount 0.5 --good_class_factor 1.5 --classifier_use_fp16 True"
