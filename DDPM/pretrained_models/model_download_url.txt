@@ -1,0 +1,22 @@
+
+
+# DDPM diffusion model: 128x128_diffusion.pt
+https://openaipublic.blob.core.windows.net/diffusion/jul-2021/128x128_diffusion.pt
+
+# fine-tune classifier: 128x128_classifier.pt: 
+https://openaipublic.blob.core.windows.net/diffusion/jul-2021/128x128_classifier.pt
+
+
+# off-the-shelf ResNet50: resnet50_weight_V2.pth
+https://download.pytorch.org/models/resnet50-11ad3fa6.pth
+
+
+# off-the-shelf ResNet101: resnet101_weight_V2.pth
+https://download.pytorch.org/models/resnet101-cd907fc2.pth
+
+
+# ImageNet 128x128 reference batch: VIRTUAL_imagenet128_labeled.npz
+https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/imagenet/128/VIRTUAL_imagenet128_labeled.npz
+
+
+
