@@ -35,8 +35,8 @@ def main():
 
     dist_util.setup_dist()
 
-    if not os.path.exists(agrs.log_dir):
-        os.mkdir(args.log_dir)
+    if dist.get_rank() == 0:
+        os.makedirs(args.log_dir, exist_ok=True)
 
     logger.configure(dir=args.log_dir)
 
@@ -62,45 +62,20 @@ def main():
         classifier.convert_to_fp16()
     classifier.eval()
 
-    def load_data_dict(data_path):
-        data_dict = {'label':[], 'accuracy':[], 'loss':[], 'select_loss': []}
-        with open(data_path, mode='r') as file:
-            # reading the CSV file
-            csvFile = csv.DictReader(file)
-            # displaying the contents of the CSV file
-            for lines in csvFile:
-                key_list = list(lines.keys())
-                value_list = list(lines.values())
-                for i in range(len(key_list)):
-                    key = key_list[i]
-                    if key == 'class':
-                        value = int(value_list[i])
-                    else:
-                        value = float(value_list[i])
-                    data_dict[key].append(value)
-        return data_dict
-
-    acc_path = './pretrained_models/total_acc_by_label.csv'
-    acc_dict = load_data_dict(acc_path)
-    label_list = acc_dict['label']
-    acc_list = acc_dict['accuracy']
-    label_array = np.array(label_list)
-    acc_array = np.array(acc_list)
-    good_check_percentile = 90
-    good_acc_threshold = np.percentile(acc_array,good_check_percentile)
-    good_labels = th.tensor(label_array[acc_array > good_acc_threshold]).cuda()
-
-    # resnet_address = './pretrained_models/resnet50_weight_V2.pth'
-    # resnet = models.resnet50()
-    resnet_address = './pretrained_models/resnet101_weight_V2.pth'
-    resnet = models.resnet101()
+    assert args.classifier_type in ['resnet50', 'resnet101']
+    if args.classifier_type == 'resnet50':
+        resnet_address = './pretrained_models/resnet50_weight_V2.pth'
+        resnet = models.resnet50()
+    else:
+        resnet_address = './pretrained_models/resnet101_weight_V2.pth'
+        resnet = models.resnet101()
     for param in resnet.parameters():
         param.required_grad = False
     resnet.load_state_dict(th.load(resnet_address))
     resnet.eval()
     resnet.cuda()
 
-    if args.softplus_beta < np.inf:
+    if (args.softplus_beta < np.inf):
         for name, module in resnet.named_children():
             if isinstance(module, th.nn.ReLU):
                 resnet._modules[name] = th.nn.Softplus(beta=args.softplus_beta)
@@ -110,10 +85,10 @@ def main():
                         for subsub_name, subsub_module in sub_module.named_children():
                             if isinstance(subsub_module, th.nn.ReLU):
                                 resnet._modules[name]._modules[sub_name]._modules[subsub_name] = th.nn.Softplus(beta=args.softplus_beta)
-    print('resnet:', resnet)
+    print('resnet', resnet)
+    print('classifier_type', args.classifier_type)
     print('softplus_beta', args.softplus_beta)
     args.classifier_scale = float(args.classifier_scale)
-    print('good_class_factor', args.good_class_factor)
     print('classifier_scale', args.classifier_scale)
     args.joint_temperature = float(args.joint_temperature)
     print('joint_temperature', args.joint_temperature)
@@ -156,13 +131,7 @@ def main():
             numerator = th.exp(logits*temperature1)[range(len(logits)), y.view(-1)].unsqueeze(1)
             denominator2 = th.exp(logits*temperature2).sum(1, keepdims=True)
             selected = th.log(numerator / denominator2)
-            grads = th.autograd.grad(selected.sum(), pred_xstart)[0]
-
-            for i in range(grads.shape[0]):
-                amplify_factor = args.classifier_scale
-                if y[i] in good_labels:
-                    amplify_factor = amplify_factor * args.good_class_factor
-                grads[i] = grads[i] * amplify_factor
+            grads = th.autograd.grad(selected.sum(), pred_xstart)[0] * args.classifier_scale
             return grads
 
     logger.log("sampling...")
@@ -228,12 +197,6 @@ def main():
         logger.log(f"saving to {out_path}")
         np.savez(out_path, arr, label_arr)
 
-    if args.save_figure:
-        for i in range(arr.shape[0]):
-            im = Image.fromarray(arr[i])
-            out_path = os.path.join(logger.get_dir(), f"{i}_label{label_arr[i]}.jpeg")
-            im.save(out_path)
-
     dist.barrier()
     used_time = (time.time() - start_time)
     logger.log(f"sampling complete, used time {used_time}")
@@ -246,17 +209,16 @@ def create_argparser():
         log_dir=None,
         fix_class=False,
         fix_class_index=0,
-        save_figure=False,
         batch_size=16,
         use_ddim=False,
         model_path="",
         classifier_path="",
         classifier_scale=1.0,
+        classifier_type='resnet101',
         softplus_beta=np.inf,
         joint_temperature=1.0,
         margin_temperature_discount=1.0,
-        time_temperature='',
-        good_class_factor=1.0
+        time_temperature=''
     )
     defaults.update(model_and_diffusion_defaults())
     defaults.update(classifier_defaults())
