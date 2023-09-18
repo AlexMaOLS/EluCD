@@ -399,6 +399,7 @@ class GaussianDiffusion:
         model,
         x,
         t,
+        gamma_factor=0.0,
         clip_denoised=True,
         denoised_fn=None,
         cond_fn=None,
@@ -437,11 +438,9 @@ class GaussianDiffusion:
             pred_xstart = out['pred_xstart']
             variance = out['variance'][0][0][0][0].item()
             self.max_variance = max(self.max_variance, variance)
-            self.min_variance = min(self.min_variance, variance)
             # adding sin timely-decay factor to the guidance schedule
             current_time = t[0].item()
-            add_factor = 0.3
-            add_value = max(np.sin((current_time/self.num_timesteps)*np.pi)*self.max_variance*add_factor, 0.0)
+            add_value = max(np.sin((current_time/self.num_timesteps)*np.pi)*self.max_variance*gamma_factor, 0.0)
             # off-the-shelf classifier guidance
             gradient = cond_fn([x,pred_xstart], self._scale_timesteps(t), **model_kwargs)
             out["mean"] = (
@@ -454,6 +453,7 @@ class GaussianDiffusion:
         self,
         model,
         shape,
+        gamma_factor=0.0,
         noise=None,
         clip_denoised=True,
         denoised_fn=None,
@@ -485,6 +485,7 @@ class GaussianDiffusion:
         for sample in self.p_sample_loop_progressive(
             model,
             shape,
+            gamma_factor=gamma_factor,
             noise=noise,
             clip_denoised=clip_denoised,
             denoised_fn=denoised_fn,
@@ -500,6 +501,7 @@ class GaussianDiffusion:
         self,
         model,
         shape,
+        gamma_factor=0.0,
         noise=None,
         clip_denoised=True,
         denoised_fn=None,
@@ -532,8 +534,6 @@ class GaussianDiffusion:
             indices = tqdm(indices)
 
         self.max_variance = 0.0
-        self.min_variance = np.inf
-
         for i in indices:
             t = th.tensor([i] * shape[0], device=device)
             with th.no_grad():
@@ -541,6 +541,7 @@ class GaussianDiffusion:
                     model,
                     img,
                     t,
+                    gamma_factor,
                     clip_denoised=clip_denoised,
                     denoised_fn=denoised_fn,
                     cond_fn=cond_fn,

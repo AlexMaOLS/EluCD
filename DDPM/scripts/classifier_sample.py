@@ -85,17 +85,22 @@ def main():
                         for subsub_name, subsub_module in sub_module.named_children():
                             if isinstance(subsub_module, th.nn.ReLU):
                                 resnet._modules[name]._modules[sub_name]._modules[subsub_name] = th.nn.Softplus(beta=args.softplus_beta)
-    print('resnet', resnet)
-    print('classifier_type', args.classifier_type)
-    print('softplus_beta', args.softplus_beta)
-    args.classifier_scale = float(args.classifier_scale)
-    print('classifier_scale', args.classifier_scale)
-    args.joint_temperature = float(args.joint_temperature)
-    print('joint_temperature', args.joint_temperature)
-    args.margin_temperature_discount = float(args.margin_temperature_discount)
-    print('margin_temperature_discount', args.margin_temperature_discount)
-    print('time_temperature', args.time_temperature)
 
+    args.classifier_scale = float(args.classifier_scale)
+    args.joint_temperature = float(args.joint_temperature)
+    args.margin_temperature_discount = float(args.margin_temperature_discount)
+    args.gamma_factor = float(args.gamma_factor)
+
+    if dist.get_rank() == 0:
+        print('resnet', resnet)
+        print('classifier_type', args.classifier_type)
+        print('classifier_scale', args.classifier_scale)
+        print('softplus_beta', args.softplus_beta)
+        print('joint_temperature', args.joint_temperature)
+        print('margin_temperature_discount', args.margin_temperature_discount)
+        print('gamma_factor', args.gamma_factor)
+
+    # use fine-tuned classifier guided sampling
     def cond_fn(x, t, y=None):
         assert y is not None
         with th.enable_grad():
@@ -119,15 +124,8 @@ def main():
             # resnet classifier
             logits = resnet(pred_xstart)
             # temperature
-            if args.time_temperature == 'time':
-                num_sampling_steps = float(args.timestep_respacing)
-                current_time = t[0].item()
-                temperature1 = (args.joint_temperature/num_sampling_steps)*(num_sampling_steps-current_time)
-                temperature1 = max(temperature1,0.01)
-            else:
-                temperature1 = args.joint_temperature
+            temperature1 = args.joint_temperature
             temperature2 = temperature1 * args.margin_temperature_discount
-
             numerator = th.exp(logits*temperature1)[range(len(logits)), y.view(-1)].unsqueeze(1)
             denominator2 = th.exp(logits*temperature2).sum(1, keepdims=True)
             selected = th.log(numerator / denominator2)
@@ -153,6 +151,7 @@ def main():
         sample = sample_fn(
             model_fn,
             (args.batch_size, 3, args.image_size, args.image_size),
+            gamma_factor=args.gamma_factor,
             clip_denoised=args.clip_denoised,
             model_kwargs=model_kwargs,
             cond_fn=design_cond_fn,
@@ -218,7 +217,7 @@ def create_argparser():
         softplus_beta=np.inf,
         joint_temperature=1.0,
         margin_temperature_discount=1.0,
-        time_temperature=''
+        gamma_factor=0.0
     )
     defaults.update(model_and_diffusion_defaults())
     defaults.update(classifier_defaults())
