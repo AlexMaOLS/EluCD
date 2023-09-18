@@ -31,7 +31,6 @@ from guided_diffusion.script_util import (
 def main():
     start_time = time.time()
     args = create_argparser().parse_args()
-    print('args:', args)
 
     dist_util.setup_dist()
 
@@ -94,45 +93,37 @@ def main():
     args.gamma_factor = float(args.gamma_factor)
 
     if dist.get_rank() == 0:
-        print('resnet', resnet)
-        print('classifier_type', args.classifier_type)
-        print('classifier_scale', args.classifier_scale)
-        print('softplus_beta', args.softplus_beta)
-        print('joint_temperature', args.joint_temperature)
-        print('margin_temperature_discount', args.margin_temperature_discount)
-        print('gamma_factor', args.gamma_factor)
-
-    # use fine-tuned classifier guided sampling
-    def cond_fn(x, t, y=None):
-        assert y is not None
-        with th.enable_grad():
-            x_in = x.detach().requires_grad_(True)
-            logits = classifier(x_in, t)
-            log_probs = F.log_softmax(logits, dim=-1)
-            selected = log_probs[range(len(logits)), y.view(-1)]
-            return th.autograd.grad(selected.sum(), x_in)[0] * args.classifier_scale
+        print('args:', args)
 
     def model_fn(x, t, y=None):
         assert y is not None
         return model(x, t, y if args.class_cond else None)
 
-    # use off-the-shelf classifier gradient for guided sampling
+    # use fine-tuned or off-the-shelf classifier gradient for guided sampling
     def design_cond_fn(inputs, t, y=None):
         assert y is not None
         with th.enable_grad():
             x = inputs[0]
             pred_xstart = inputs[1]
-            pred_xstart = pred_xstart.detach().requires_grad_(True)
-            # resnet classifier
-            logits = resnet(pred_xstart)
-            # temperature
-            temperature1 = args.joint_temperature
-            temperature2 = temperature1 * args.margin_temperature_discount
-            numerator = th.exp(logits*temperature1)[range(len(logits)), y.view(-1)].unsqueeze(1)
-            denominator2 = th.exp(logits*temperature2).sum(1, keepdims=True)
-            selected = th.log(numerator / denominator2)
-            grads = th.autograd.grad(selected.sum(), pred_xstart)[0] * args.classifier_scale
-            return grads
+            # finetune guided
+            if args.classifier_type == 'finetune':
+                x_in = x.detach().requires_grad_(True)
+                logits = classifier(x_in, t)
+                log_probs = F.log_softmax(logits, dim=-1)
+                selected = log_probs[range(len(logits)), y.view(-1)]
+                return th.autograd.grad(selected.sum(), x_in)[0] * args.classifier_scale
+            # off-the-shelf ResNet guided
+            else:
+                pred_xstart = pred_xstart.detach().requires_grad_(True)
+                # resnet classifier
+                logits = resnet(pred_xstart)
+                # temperature
+                temperature1 = args.joint_temperature
+                temperature2 = temperature1 * args.margin_temperature_discount
+                numerator = th.exp(logits*temperature1)[range(len(logits)), y.view(-1)].unsqueeze(1)
+                denominator2 = th.exp(logits*temperature2).sum(1, keepdims=True)
+                selected = th.log(numerator / denominator2)
+                return th.autograd.grad(selected.sum(), pred_xstart)[0] * args.classifier_scale
 
     logger.log("sampling...")
     all_images = []
@@ -150,28 +141,16 @@ def main():
         sample_fn = (
             diffusion.p_sample_loop if not args.use_ddim else diffusion.ddim_sample_loop
         )
-        # finetune classifier guidance
-        if args.classifier_type == 'finetune':
-            sample = sample_fn(
-                model_fn,
-                (args.batch_size, 3, args.image_size, args.image_size),
-                gamma_factor=args.gamma_factor,
-                clip_denoised=args.clip_denoised,
-                model_kwargs=model_kwargs,
-                cond_fn=cond_fn,
-                device=dist_util.dev(),
-            )
-        # off-the-shelf ResNet classifier guidance
-        else:
-            sample = sample_fn(
-                model_fn,
-                (args.batch_size, 3, args.image_size, args.image_size),
-                gamma_factor=args.gamma_factor,
-                clip_denoised=args.clip_denoised,
-                model_kwargs=model_kwargs,
-                cond_fn=design_cond_fn,
-                device=dist_util.dev(),
-            )
+        # classifier guidance
+        sample = sample_fn(
+            model_fn,
+            (args.batch_size, 3, args.image_size, args.image_size),
+            gamma_factor=args.gamma_factor,
+            clip_denoised=args.clip_denoised,
+            model_kwargs=model_kwargs,
+            cond_fn=design_cond_fn,
+            device=dist_util.dev(),
+        )
         sample = ((sample + 1) * 127.5).clamp(0, 255).to(th.uint8)
         sample = sample.permute(0, 2, 3, 1)
         sample = sample.contiguous()
