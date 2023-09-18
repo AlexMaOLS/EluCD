@@ -31,7 +31,7 @@ from guided_diffusion.script_util import (
 def main():
     start_time = time.time()
     args = create_argparser().parse_args()
-    print('args:', agrs)
+    print('args:', args)
 
     dist_util.setup_dist()
 
@@ -52,39 +52,41 @@ def main():
         model.convert_to_fp16()
     model.eval()
 
+    assert args.classifier_type in ['finetune', 'resnet50', 'resnet101']
     logger.log("loading classifier...")
-    classifier = create_classifier(**args_to_dict(args, classifier_defaults().keys()))
-    classifier.load_state_dict(
-        dist_util.load_state_dict(args.classifier_path, map_location="cpu")
-    )
-    classifier.to(dist_util.dev())
-    if args.classifier_use_fp16:
-        classifier.convert_to_fp16()
-    classifier.eval()
-
-    assert args.classifier_type in ['resnet50', 'resnet101']
-    if args.classifier_type == 'resnet50':
-        resnet_address = './pretrained_models/resnet50_weight_V2.pth'
-        resnet = models.resnet50()
+    if args.classifier_type == 'finetune':
+        classifier = create_classifier(**args_to_dict(args, classifier_defaults().keys()))
+        classifier.load_state_dict(
+            dist_util.load_state_dict(args.classifier_path, map_location="cpu")
+        )
+        classifier.to(dist_util.dev())
+        if args.classifier_use_fp16:
+            classifier.convert_to_fp16()
+        classifier.eval()
     else:
-        resnet_address = './pretrained_models/resnet101_weight_V2.pth'
-        resnet = models.resnet101()
-    for param in resnet.parameters():
-        param.required_grad = False
-    resnet.load_state_dict(th.load(resnet_address))
-    resnet.eval()
-    resnet.cuda()
+        if args.classifier_type == 'resnet50':
+            resnet_address = './pretrained_models/resnet50_weight_V2.pth'
+            resnet = models.resnet50()
+        else:
+            resnet_address = './pretrained_models/resnet101_weight_V2.pth'
+            resnet = models.resnet101()
+        for param in resnet.parameters():
+            param.required_grad = False
+        resnet.load_state_dict(th.load(resnet_address))
+        resnet.eval()
+        resnet.cuda()
 
-    if (args.softplus_beta < np.inf):
-        for name, module in resnet.named_children():
-            if isinstance(module, th.nn.ReLU):
-                resnet._modules[name] = th.nn.Softplus(beta=args.softplus_beta)
-            if name in ['layer1','layer2','layer3','layer4']:
-                for sub_name, sub_module in module.named_children():
-                    if isinstance(sub_module, models.resnet.Bottleneck):
-                        for subsub_name, subsub_module in sub_module.named_children():
-                            if isinstance(subsub_module, th.nn.ReLU):
-                                resnet._modules[name]._modules[sub_name]._modules[subsub_name] = th.nn.Softplus(beta=args.softplus_beta)
+        # replace ReLU with Softplus activation function
+        if (args.softplus_beta < np.inf):
+            for name, module in resnet.named_children():
+                if isinstance(module, th.nn.ReLU):
+                    resnet._modules[name] = th.nn.Softplus(beta=args.softplus_beta)
+                if name in ['layer1','layer2','layer3','layer4']:
+                    for sub_name, sub_module in module.named_children():
+                        if isinstance(sub_module, models.resnet.Bottleneck):
+                            for subsub_name, subsub_module in sub_module.named_children():
+                                if isinstance(subsub_module, th.nn.ReLU):
+                                    resnet._modules[name]._modules[sub_name]._modules[subsub_name] = th.nn.Softplus(beta=args.softplus_beta)
 
     args.classifier_scale = float(args.classifier_scale)
     args.joint_temperature = float(args.joint_temperature)
@@ -139,7 +141,7 @@ def main():
     while len(all_images) * args.batch_size < args.num_samples:
         model_kwargs = {}
         classes = th.randint(
-            low=0, high=args.classifier_class, size=(args.batch_size,), device=dist_util.dev()
+            low=0, high=NUM_CLASSES, size=(args.batch_size,), device=dist_util.dev()
         )
         if args.fix_class:
             classes = th.ones(size=classes.shape, dtype=int, device=dist_til.dev()) * args.fix_class_index
@@ -148,15 +150,28 @@ def main():
         sample_fn = (
             diffusion.p_sample_loop if not args.use_ddim else diffusion.ddim_sample_loop
         )
-        sample = sample_fn(
-            model_fn,
-            (args.batch_size, 3, args.image_size, args.image_size),
-            gamma_factor=args.gamma_factor,
-            clip_denoised=args.clip_denoised,
-            model_kwargs=model_kwargs,
-            cond_fn=design_cond_fn,
-            device=dist_util.dev(),
-        )
+        # finetune classifier guidance
+        if args.classifier_type == 'finetune':
+            sample = sample_fn(
+                model_fn,
+                (args.batch_size, 3, args.image_size, args.image_size),
+                gamma_factor=args.gamma_factor,
+                clip_denoised=args.clip_denoised,
+                model_kwargs=model_kwargs,
+                cond_fn=cond_fn,
+                device=dist_util.dev(),
+            )
+        # off-the-shelf ResNet classifier guidance
+        else:
+            sample = sample_fn(
+                model_fn,
+                (args.batch_size, 3, args.image_size, args.image_size),
+                gamma_factor=args.gamma_factor,
+                clip_denoised=args.clip_denoised,
+                model_kwargs=model_kwargs,
+                cond_fn=design_cond_fn,
+                device=dist_util.dev(),
+            )
         sample = ((sample + 1) * 127.5).clamp(0, 255).to(th.uint8)
         sample = sample.permute(0, 2, 3, 1)
         sample = sample.contiguous()

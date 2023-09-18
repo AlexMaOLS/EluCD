@@ -10,9 +10,6 @@ MODEL_FLAGS="--attention_resolutions 32,16,8 --class_cond True --image_size 128 
 CLASSIFIER_FLAGS="--image_size 128 --classifier_attention_resolutions 32,16,8 --classifier_depth 2 --classifier_width 128 --classifier_pool attention --classifier_resblock_updown True --classifier_use_scale_shift_norm True --classifier_type resnet101 --classifier_scale 1.0 --softplus_beta 3.0 --joint_temperature 1.0 --margin_temperature_discount 0.5 --gamma_factor 0.3 --classifier_use_fp16 True"
 
 
-mpiexec -n 8 python scripts/classifier_sample.py \  
-	--model_path pretrained_models/128x128_diffusion.pt \ 
-	--classifier_path pretrained_models/128x128_classifier.pt \
-	$MODEL_FLAGS $CLASSIFIER_FLAGS $SAMPLE_FLAGS
+mpiexec -n 8 python scripts/classifier_sample.py --model_path "pretrained_models/128x128_diffusion.pt" --classifier_path "pretrained_models/128x128_classifier.pt" $MODEL_FLAGS $CLASSIFIER_FLAGS $SAMPLE_FLAGS
 
 
