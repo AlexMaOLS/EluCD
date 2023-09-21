@@ -85,14 +85,6 @@ class SpacedDiffusion(GaussianDiffusion):
                 self.timestep_map.append(i)
         kwargs["betas"] = np.array(new_betas)
 
-        betas_array = np.array(new_betas)
-        for time_index in range(len(betas_array)-2, 0, -1):
-            beta_t3 = betas_array[time_index+1]
-            beta_t2 = betas_array[time_index]
-            beta_t1 = betas_array[time_index-1]
-            if beta_t2 < beta_t1 or beta_t2 > beta_t3:
-                betas_array[time_index] = beta_t3
-        kwargs["betas"] = betas_array
         super().__init__(**kwargs)
 
     def p_mean_variance(
