@@ -6,7 +6,7 @@ This repository contains three main folders, targeting the off-the-shelf classif
 
 # Download pre-trained models
 For all the pre-trained diffusion, classifier models and reference batch, please place them in the `./DDPM/pretrained_models` folder:
-For DDPM diffusion models, the ImageNet128x128 Diffusion model [checkpoint](https://openaipublic.blob.core.windows.net/diffusion/jul-2021/128x128_diffusion.pt) is from [DDPM diffusion model](https://github.com/openai/guided-diffusion), 
+For DDPM diffusion models, the ImageNet128x128 [Diffusion model](https://openaipublic.blob.core.windows.net/diffusion/jul-2021/128x128_diffusion.pt) and [fine-tuned classifier](https://openaipublic.blob.core.windows.net/diffusion/jul-2021/128x128_classifier.pt) is from [DDPM diffusion model](https://github.com/openai/guided-diffusion), 
 
 We use the off-the-shelf [Pytorch ResNet classifier](https://pytorch.org/vision/main/models/resnet.html): [ResNet50](https://download.pytorch.org/models/resnet50-11ad3fa6.pth) and [ResNet101](https://download.pytorch.org/models/resnet101-cd907fc2.pth) classifier for guided-sampling. 
 
