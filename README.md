@@ -5,7 +5,7 @@ This is the codebase for [Elucidating The Design Space of Classifier-Guided Diff
 This repository contains three main folders, targeting the off-the-shelf classifier guidance for [DDPM](https://github.com/openai/guided-diffusion), [EDM](https://github.com/NVlabs/edm) and [DiT](https://github.com/facebookresearch/DiT) respectively.   
 
 # Download pre-trained models
-For all the pre-trained diffusion and classifier models, please place them in the pretrained_models folder:
+For all the pre-trained diffusion and classifier models, please place them in the `./DDPM/pretrained_models` folder:
 For DDPM diffusion models, the ImageNet128x128 Diffusion model [checkpoint](https://openaipublic.blob.core.windows.net/diffusion/jul-2021/128x128_diffusion.pt) is from [DDPM diffusion model](https://github.com/openai/guided-diffusion), 
 
 We use the off-the-shelf [Pytorch ResNet classifier](https://pytorch.org/vision/main/models/resnet.html): [ResNet50](https://download.pytorch.org/models/resnet50-11ad3fa6.pth) and [ResNet101](https://download.pytorch.org/models/resnet101-cd907fc2.pth) classifier for guided-sampling. 
