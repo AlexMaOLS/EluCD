@@ -40,8 +40,8 @@ This table summarizes our ImageNet results for 250 steps of DDPM guided sampling
 | [Diffusion Baseline](https://arxiv.org/abs/2105.05233)   | 5.91 | 0.70      | 0.65   |
 | [Diffusion Finetune classifier Guided](https://arxiv.org/abs/2105.05233) | 2.97 | 0.78      | 0.59   |
 | [Diffusion Classifier-Free](https://arxiv.org/pdf/2207.12598.pdf)  | 2.43 | -      | -   |
-| Diffusion ResNet50 Guided (Ours) | \bf{2.36} | 0.77      | 0.60   |
-| Diffusion ResNet101 Guided (Ours) | \bf{2.19} | 0.79      | 0.58   |
+| Diffusion ResNet50 Guided (Ours) | **2.36** | 0.77      | 0.60   |
+| Diffusion ResNet101 Guided (Ours) | **2.19** | 0.79      | 0.58   |
 
 
 
