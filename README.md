@@ -16,7 +16,7 @@ For FID evaluation, use the ImageNet 128x128 [reference batch](https://openaipub
 
 Firstly go to folder `./DDPM`, which contains all files for the off-the-shelf classifier guidance for [DDPM diffusion model](https://github.com/openai/guided-diffusion). 
 you can directly run `./DDPM/guided_sample.sh`.
-All the model checkpoints are stored in the `./pretrained_models/` folder.
+All the model checkpoints are stored in the `./DDPM/pretrained_models/` folder.
 
 For FID evaluation, use `./pytorch-fid-master/src/evaluation_image.sh`, and replace the filename with the sample folder name you created. 
 
