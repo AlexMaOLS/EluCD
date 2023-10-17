@@ -37,11 +37,11 @@ This table summarizes our ImageNet results for 250 steps of DDPM guided sampling
 
 | ImageNet 128x128          | FID  | Precision | Recall |
 |------------------|------|-----------|--------|
-| Diffusion Basline   | 5.91 | 0.70      | 0.65   |
-| Diffusion Finetune classifier Guided | 2.97 | 0.78      | 0.59   |
-| Diffusion Classifier-Free | 2.43 | -      | -   |
-| Diffusion ResNet50 Guided | 2.36 | 0.77      | 0.60   |
-| Diffusion ResNet101 Guided | 2.19 | 0.79      | 0.58   |
+| Diffusion [Baseline](https://github.com/openai/guided-diffusion)   | 5.91 | 0.70      | 0.65   |
+| Diffusion [Finetune classifier Guided](https://github.com/openai/guided-diffusion) | 2.97 | 0.78      | 0.59   |
+| Diffusion Classifier-Free  | 2.43 | -      | -   |
+| Diffusion ResNet50 Guided (Ours) | 2.36 | 0.77      | 0.60   |
+| Diffusion ResNet101 Guided (Ours) | 2.19 | 0.79      | 0.58   |
 
 
 
