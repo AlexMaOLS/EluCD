@@ -22,19 +22,12 @@ For FID evaluation, use `./pytorch-fid-master/src/evaluation_image.sh`, and repl
 
 ## Off-the-shelf Classifier guidance
 
-Note for these sampling runs that you can set `--classifier_scale 0` to sample from the base diffusion model.
-You may also use the `image_sample.py` script instead of `classifier_sample.py` in that case.
-
- * off-the-shelf ResNet50 DDPM guided:
-
-```
-CLASSIFIER_FLAGS="--image_size 128 --classifier_attention_resolutions 32,16,8 --classifier_depth 2 --classifier_width 128 --classifier_pool attention --classifier_resblock_updown True --classifier_use_scale_shift_norm True --classifier_scale 1.0 --softplus_beta 3.0 --joint_temperature 1.0 --margin_temperature_discount 0.5 --good_class_factor 1.5 --classifier_use_fp16 True"
-```
+Run `./guided_sample.sh`, to generate sample the off-the-shelf classifier guided sampling
 
  * off-the-shelf ResNet101 DDPM guided:
 
 ```
-CLASSIFIER_FLAGS="--image_size 128 --classifier_attention_resolutions 32,16,8 --classifier_depth 2 --classifier_width 128 --classifier_pool attention --classifier_resblock_updown True --classifier_use_scale_shift_norm True --classifier_scale 1.0 --softplus_beta 3.0 --joint_temperature 1.0 --margin_temperature_discount 0.5 --good_class_factor 1.5 --classifier_use_fp16 True"
+CLASSIFIER_FLAGS="--image_size 128 --classifier_attention_resolutions 32,16,8 --classifier_depth 2 --classifier_width 128 --classifier_pool attention --classifier_resblock_updown True --classifier_use_scale_shift_norm True --classifier_type resnet101 --classifier_scale 1.0 --softplus_beta 3.0 --joint_temperature 1.0 --margin_temperature_discount 0.5 --gamma_factor 0.3 --classifier_use_fp16 True"
 ```
 
 
