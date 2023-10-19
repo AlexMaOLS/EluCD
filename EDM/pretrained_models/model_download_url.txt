@@ -1,0 +1,12 @@
+
+# ImageNet64x64 EDM diffusion model: 
+https://nvlabs-fi-cdn.nvidia.com/edm/pretrained/edm-imagenet-64x64-cond-adm.pkl
+
+# off-the-shelf ResNet101: resnet101_weight_V2.pth
+https://download.pytorch.org/models/resnet101-cd907fc2.pth
+
+# ImageNet 64x64 reference batch for FID evaluation: 
+https://nvlabs-fi-cdn.nvidia.com/edm/fid-refs/imagenet-64x64.npz
+
+
+
