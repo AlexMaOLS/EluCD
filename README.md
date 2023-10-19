@@ -52,6 +52,8 @@ This table summarizes our ImageNet results for 250 steps of DDPM guided sampling
 | Diffusion ResNet101 Guided (Ours) | **2.19** | 0.79      | 0.58   |
 
 
+# off-the-shelf classifier guided EDM 
+
 
 # To be continued
 
