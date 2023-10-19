@@ -12,7 +12,6 @@ import torch.nn.functional as F
 from PIL import Image
 import time
 import numpy as np
-import csv
 import functools
 import torchvision.models as models
 
@@ -51,41 +50,31 @@ def main():
         model.convert_to_fp16()
     model.eval()
 
-    assert args.classifier_type in ['finetune', 'resnet50', 'resnet101']
+    assert args.classifier_type in ['resnet50', 'resnet101']
     logger.log("loading classifier...")
-    if args.classifier_type == 'finetune':
-        classifier = create_classifier(**args_to_dict(args, classifier_defaults().keys()))
-        classifier.load_state_dict(
-            dist_util.load_state_dict(args.classifier_path, map_location="cpu")
-        )
-        classifier.to(dist_util.dev())
-        if args.classifier_use_fp16:
-            classifier.convert_to_fp16()
-        classifier.eval()
+    if args.classifier_type == 'resnet50':
+        resnet_address = './pretrained_models/resnet50_weight_V2.pth'
+        resnet = models.resnet50()
     else:
-        if args.classifier_type == 'resnet50':
-            resnet_address = './pretrained_models/resnet50_weight_V2.pth'
-            resnet = models.resnet50()
-        else:
-            resnet_address = './pretrained_models/resnet101_weight_V2.pth'
-            resnet = models.resnet101()
-        for param in resnet.parameters():
-            param.required_grad = False
-        resnet.load_state_dict(th.load(resnet_address))
-        resnet.eval()
-        resnet.cuda()
+        resnet_address = './pretrained_models/resnet101_weight_V2.pth'
+        resnet = models.resnet101()
+    for param in resnet.parameters():
+        param.required_grad = False
+    resnet.load_state_dict(th.load(resnet_address))
+    resnet.eval()
+    resnet.cuda()
 
-        # replace ReLU with Softplus activation function
-        if (args.softplus_beta < np.inf):
-            for name, module in resnet.named_children():
-                if isinstance(module, th.nn.ReLU):
-                    resnet._modules[name] = th.nn.Softplus(beta=args.softplus_beta)
-                if name in ['layer1','layer2','layer3','layer4']:
-                    for sub_name, sub_module in module.named_children():
-                        if isinstance(sub_module, models.resnet.Bottleneck):
-                            for subsub_name, subsub_module in sub_module.named_children():
-                                if isinstance(subsub_module, th.nn.ReLU):
-                                    resnet._modules[name]._modules[sub_name]._modules[subsub_name] = th.nn.Softplus(beta=args.softplus_beta)
+    # replace ReLU with Softplus activation function
+    if (args.softplus_beta < np.inf):
+        for name, module in resnet.named_children():
+            if isinstance(module, th.nn.ReLU):
+                resnet._modules[name] = th.nn.Softplus(beta=args.softplus_beta)
+            if name in ['layer1','layer2','layer3','layer4']:
+                for sub_name, sub_module in module.named_children():
+                    if isinstance(sub_module, models.resnet.Bottleneck):
+                        for subsub_name, subsub_module in sub_module.named_children():
+                            if isinstance(subsub_module, th.nn.ReLU):
+                                resnet._modules[name]._modules[sub_name]._modules[subsub_name] = th.nn.Softplus(beta=args.softplus_beta)
 
     args.classifier_scale = float(args.classifier_scale)
     args.joint_temperature = float(args.joint_temperature)
@@ -105,25 +94,17 @@ def main():
         with th.enable_grad():
             x = inputs[0]
             pred_xstart = inputs[1]
-            # finetune guided
-            if args.classifier_type == 'finetune':
-                x_in = x.detach().requires_grad_(True)
-                logits = classifier(x_in, t)
-                log_probs = F.log_softmax(logits, dim=-1)
-                selected = log_probs[range(len(logits)), y.view(-1)]
-                return th.autograd.grad(selected.sum(), x_in)[0] * args.classifier_scale
             # off-the-shelf ResNet guided
-            else:
-                pred_xstart = pred_xstart.detach().requires_grad_(True)
-                # resnet classifier
-                logits = resnet(pred_xstart)
-                # temperature
-                temperature1 = args.joint_temperature
-                temperature2 = temperature1 * args.margin_temperature_discount
-                numerator = th.exp(logits*temperature1)[range(len(logits)), y.view(-1)].unsqueeze(1)
-                denominator2 = th.exp(logits*temperature2).sum(1, keepdims=True)
-                selected = th.log(numerator / denominator2)
-                return th.autograd.grad(selected.sum(), pred_xstart)[0] * args.classifier_scale
+            pred_xstart = pred_xstart.detach().requires_grad_(True)
+            # resnet classifier
+            logits = resnet(pred_xstart)
+            # temperature
+            temperature1 = args.joint_temperature
+            temperature2 = temperature1 * args.margin_temperature_discount
+            numerator = th.exp(logits*temperature1)[range(len(logits)), y.view(-1)].unsqueeze(1)
+            denominator2 = th.exp(logits*temperature2).sum(1, keepdims=True)
+            selected = th.log(numerator / denominator2)
+            return th.autograd.grad(selected.sum(), pred_xstart)[0] * args.classifier_scale
 
     logger.log("sampling...")
     all_images = []
@@ -205,7 +186,7 @@ def create_argparser():
         batch_size=16,
         use_ddim=False,
         model_path="",
-        classifier_path="",
+        classifier_path='',
         classifier_scale=1.0,
         classifier_type='resnet101',
         softplus_beta=np.inf,
