@@ -4,7 +4,16 @@ This is the codebase for **Elucidating The Design Space of Classifier-Guided Dif
 
 This repository contains three main folders, targeting the off-the-shelf classifier guidance for [DDPM](https://github.com/openai/guided-diffusion), [EDM](https://github.com/NVlabs/edm) and [DiT](https://github.com/facebookresearch/DiT) respectively.   
 
-# Download pre-trained models
+# off-the-shelf classifier guided DDPM 
+## Environment variables and files
+
+```
+export PYTHONPATH="${PYTHONPATH}:...{Folder_Path}/EluCD-main/DDPM"
+pip install blobfile
+pip install mpi4py
+```
+
+## Download pre-trained models
 For all the pre-trained diffusion, classifier models and reference batch, please place them in the `./DDPM/pretrained_models` folder:
 For DDPM diffusion models, the ImageNet128x128 [Diffusion model](https://openaipublic.blob.core.windows.net/diffusion/jul-2021/128x128_diffusion.pt) and [fine-tuned classifier](https://openaipublic.blob.core.windows.net/diffusion/jul-2021/128x128_classifier.pt) is from [DDPM diffusion model](https://github.com/openai/guided-diffusion), 
 
@@ -12,7 +21,7 @@ We use the off-the-shelf [Pytorch ResNet classifier](https://pytorch.org/vision/
 
 For FID evaluation, use the ImageNet 128x128 [reference batch](https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/imagenet/128/VIRTUAL_imagenet128_labeled.npz) .
 
-# Off-the-shelf Guidance for DDPM 
+## Off-the-shelf Guidance for DDPM 
 
 Firstly go to folder `./DDPM`, which contains all files for the off-the-shelf classifier guidance for [DDPM diffusion model](https://github.com/openai/guided-diffusion). 
 you can directly run `./DDPM/guided_sample.sh`.
@@ -30,8 +39,7 @@ Run `./guided_sample.sh`, to generate sample the off-the-shelf classifier guided
 CLASSIFIER_FLAGS="--image_size 128 --classifier_attention_resolutions 32,16,8 --classifier_depth 2 --classifier_width 128 --classifier_pool attention --classifier_resblock_updown True --classifier_use_scale_shift_norm True --classifier_type resnet101 --classifier_scale 1.0 --softplus_beta 3.0 --joint_temperature 1.0 --margin_temperature_discount 0.5 --gamma_factor 0.3 --classifier_use_fp16 True"
 ```
 
-
-# Results
+## DDPM Results
 
 This table summarizes our ImageNet results for 250 steps of DDPM guided sampling:
 
