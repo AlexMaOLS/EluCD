@@ -55,6 +55,20 @@ This table summarizes our ImageNet results for 250 steps of DDPM guided sampling
 # off-the-shelf classifier guided EDM 
 
 
+## EDM sampling Results
+
+This table summarizes our ImageNet results for 250 steps of EDM-guided sampling:
+
+| ImageNet 64x64          | Classifier  | FID | Steps |
+|------------------|------|-----------|--------|
+| EDM baseline      | -             |  2.35     | 36  |
+| EDM Res101 guided | Off-the-Shelf | \bf{2.22} | 36   |
+| EDM baseline      | -             | 2.54      | 18   |
+| EDM Res101 guided | Off-the-Shelf | \bf{2.35} | 18   |
+| EDM baseline      | -             | 3.64      | 10   |
+| EDM Res101 guided | Off-the-Shelf | \bf{3.38} | 10   |
+
+
 # To be continued
 
 We will release the code of the off-the-shelf classifier guided sampling for [EDM](https://github.com/NVlabs/edm) and [DiT](https://github.com/facebookresearch/DiT) soon.
