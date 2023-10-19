@@ -62,11 +62,11 @@ This table summarizes our ImageNet results for 250 steps of EDM-guided sampling:
 | ImageNet 64x64          | Classifier  | FID | Steps |
 |------------------|------|-----------|--------|
 | EDM baseline      | -             |  2.35     | 36  |
-| EDM Res101 guided | Off-the-Shelf | \bf{2.22} | 36   |
+| EDM Res101 guided | Off-the-Shelf | **2.22** | 36   |
 | EDM baseline      | -             | 2.54      | 18   |
-| EDM Res101 guided | Off-the-Shelf | \bf{2.35} | 18   |
+| EDM Res101 guided | Off-the-Shelf | **2.35** | 18   |
 | EDM baseline      | -             | 3.64      | 10   |
-| EDM Res101 guided | Off-the-Shelf | \bf{3.38} | 10   |
+| EDM Res101 guided | Off-the-Shelf | **3.38** | 10   |
 
 
 # To be continued
