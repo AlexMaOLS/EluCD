@@ -54,6 +54,15 @@ This table summarizes our ImageNet results for 250 steps of DDPM guided sampling
 
 # off-the-shelf classifier guided EDM 
 
+## Download pre-trained models
+For all the pre-trained diffusion, classifier models and reference batch, please place them in the `./EDM/pretrained_models` folder:
+For EDM diffusion models, the ImageNet64x64 [Diffusion model](https://nvlabs-fi-cdn.nvidia.com/edm/pretrained/edm-imagenet-64x64-cond-adm.pkl) is from [EDM diffusion model](https://github.com/NVlabs/edm), 
+
+We use the off-the-shelf [Pytorch ResNet classifier](https://pytorch.org/vision/main/models/resnet.html): [ResNet50](https://download.pytorch.org/models/resnet50-11ad3fa6.pth) and [ResNet101](https://download.pytorch.org/models/resnet101-cd907fc2.pth) classifier for guided-sampling. 
+
+For FID evaluation, use the ImageNet 64x64 [reference batch](https://nvlabs-fi-cdn.nvidia.com/edm/fid-refs/imagenet-64x64.npz).
+
+
 
 ## EDM sampling Results
 
@@ -71,4 +80,4 @@ This table summarizes our ImageNet results for 250 steps of EDM-guided sampling:
 
 # To be continued
 
-We will release the code of the off-the-shelf classifier guided sampling for [EDM](https://github.com/NVlabs/edm) and [DiT](https://github.com/facebookresearch/DiT) soon.
+We will release the code of the off-the-shelf classifier guided sampling for [DiT](https://github.com/facebookresearch/DiT) soon.
