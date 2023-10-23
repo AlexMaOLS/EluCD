@@ -41,7 +41,7 @@ CLASSIFIER_FLAGS="--image_size 128 --classifier_attention_resolutions 32,16,8 --
 
 ## DDPM Results
 
-This table summarizes our ImageNet results for 250 steps of DDPM guided sampling:
+This table summarizes our conditional ImageNet128x128 generation results for 250 steps of DDPM guided sampling:
 
 | ImageNet 128x128          | FID  | Precision | Recall |
 |------------------|------|-----------|--------|
@@ -76,7 +76,7 @@ Run `./guided_sample.sh`, to generate sample the off-the-shelf classifier guided
 
 ## EDM sampling Results
 
-This table summarizes our ImageNet results for 250 steps of EDM-guided sampling:
+This table summarizes our conditional ImageNet64x64 generation results for diverse sampling steps of EDM-guided sampling:
 
 | ImageNet 64x64          | Classifier  | FID | Steps |
 |------------------|------|-----------|--------|
