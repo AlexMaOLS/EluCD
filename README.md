@@ -29,7 +29,7 @@ All the model checkpoints are stored in the `./DDPM/pretrained_models/` folder.
 
 For FID evaluation, use `./pytorch-fid-master/src/evaluation_image.sh`, and replace the filename with the sample folder name you created. 
 
-## Off-the-shelf Classifier guidance
+## Off-the-shelf Classifier guided DDPM sampling
 
 Run `./guided_sample.sh`, to generate sample the off-the-shelf classifier guided sampling
 
@@ -62,7 +62,17 @@ We use the off-the-shelf [Pytorch ResNet classifier](https://pytorch.org/vision/
 
 For FID evaluation, use the ImageNet 64x64 [reference batch](https://nvlabs-fi-cdn.nvidia.com/edm/fid-refs/imagenet-64x64.npz).
 
+## Off-the-shelf Guidance for EDM 
 
+Firstly go to folder `./EDM`, which contains all files for the off-the-shelf classifier guidance for [EDM diffusion model](https://github.com/NVlabs/edm). 
+you can directly run `./EDM/guided_sample.sh`.
+All the model checkpoints are stored in the `./EDM/pretrained_models/` folder.
+
+For FID evaluation, use `./pytorch-fid-master/src/evaluation_image.sh`, and replace the filename with the sample folder name you created; the reference batch uses ImageNet 64x64 [reference batch](https://nvlabs-fi-cdn.nvidia.com/edm/fid-refs/imagenet-64x64.npz). 
+
+## Off-the-shelf Classifier guided EDM sampling
+
+Run `./guided_sample.sh`, to generate sample the off-the-shelf classifier guided sampling
 
 ## EDM sampling Results
 
