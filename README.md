@@ -1,4 +1,4 @@
-# Elucidating-Classifier-Guided-Diffusion (Accepted by [**ICLR2024**])
+# Elucidating-Classifier-Guided-Diffusion (ICLR2024)
 
 This is the codebase for [**Elucidating The Design Space of Classifier-Guided Diffusion Generation**](https://arxiv.org/abs/2310.11311). 
 
